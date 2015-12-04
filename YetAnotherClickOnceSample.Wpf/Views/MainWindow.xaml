@@ -1,0 +1,78 @@
+﻿<Window x:Class="YetAnotherClickOnceSample.Wpf.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+        xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
+        xmlns:v="clr-namespace:YetAnotherClickOnceSample.Wpf.Views"
+        xmlns:vm="clr-namespace:YetAnotherClickOnceSample.Wpf.ViewModels"
+        Title="ClickOnce Background Installer" Height="150" Width="525" ResizeMode="CanMinimize">
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+
+    <i:Interaction.Triggers>
+        <!--WindowのContentRenderedイベントのタイミングでViewModelのInitializeメソッドが呼ばれます-->
+        <i:EventTrigger EventName="ContentRendered">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="Initialize"/>
+        </i:EventTrigger>
+
+        <!--Windowが閉じたタイミングでViewModelのDisposeメソッドが呼ばれます-->
+        <i:EventTrigger EventName="Closed">
+            <l:DataContextDisposeAction/>
+        </i:EventTrigger>
+
+        <!--WindowのCloseキャンセル処理に対応する場合は、WindowCloseCancelBehaviorの使用を検討してください-->
+
+        <l:InteractionMessageTrigger Messenger="{Binding Messenger}" MessageKey="Dialog">
+            <l:InformationDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger Messenger="{Binding Messenger}" MessageKey="Window.Transition">
+            <l:TransitionInteractionMessageAction InvokeActionOnlyWhenWindowIsActive="False" IsOwned="False"/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger Messenger="{Binding Messenger}" MessageKey="Window.Transition.Child">
+            <l:TransitionInteractionMessageAction InvokeActionOnlyWhenWindowIsActive="False" IsOwned="True"/>
+        </l:InteractionMessageTrigger>
+
+    </i:Interaction.Triggers>
+
+    <Grid>
+        <Label Content="Download URI" HorizontalAlignment="Left" Margin="10,21,0,0" VerticalAlignment="Top"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="109,21,0,0" TextWrapping="NoWrap" Text="{Binding DownloadUri}" VerticalAlignment="Top" Width="380"/>
+        <Button Content="インストール開始" HorizontalAlignment="Left" Margin="202,59,0,0" VerticalAlignment="Top" Width="120" RenderTransformOrigin="1.315,0.508">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="Install"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Button>
+        <StatusBar HorizontalAlignment="Stretch" Height="23" VerticalAlignment="Bottom">
+            <StatusBarItem>
+                <StatusBarItem.Visibility>
+                    <Binding Path="HasInformed">
+                        <Binding.Converter>
+                            <l:VisibilityAndBooleanConverter
+                                ConvertWhenTrue="Visible"
+                                ConvertWhenFalse="Hidden"
+                                ConvertBackDefaultBooleanValue="False"
+                                ConvertBackWhenHidden="False"
+                                ConvertBackWhenVisible="True"/>
+                        </Binding.Converter>
+                    </Binding>
+                </StatusBarItem.Visibility>
+                <TextBlock>
+                    <Hyperlink>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="ShowInformationWindow"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <Run Text="結果を表示する"/>
+                    </Hyperlink>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+
+    </Grid>
+</Window>
